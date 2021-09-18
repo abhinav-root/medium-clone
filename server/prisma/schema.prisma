@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @default(uuid()) @db.VarChar(50)
+  username  String   @unique @db.VarChar(50)
+  email     String   @unique @db.VarChar(50)
+  password  String   @db.VarChar(255)
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([id, username])
+  @@map("user")
+}
+
+model Post {
+  id           String    @id @default(uuid()) @db.VarChar(50)
+  title        String
+  content      String
+  creator      User      @relation(fields: [creatorId, creatorName], references: [id, username])
+  creatorId    String    @map("creator_id") @db.VarChar(50)
+  creatorName  String    @map("creator_name") @db.VarChar(50)
+  comments     Comment[]
+  commentCount Int       @default(0)
+  upvotes      Int       @default(0) @db.Integer
+  downvotes    Int       @default(0) @db.Integer
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([creatorId])
+  @@map("post")
+}
+
+model Comment {
+  id        String   @id @default(uuid()) @db.VarChar(50)
+  author    String   @db.VarChar(50)
+  content   String   @db.VarChar(50)
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    String   @map("post_id") @db.VarChar(50)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@map("comment")
+}
